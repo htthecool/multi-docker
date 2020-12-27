@@ -1,0 +1,22 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker build -t htthecool/client-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true htthecool/client-test yarn test
+
+after_success:
+  - docker build -t htthecool/multi-client ./client
+  - docker build -t htthecool/multi-nginx ./nginx
+  - docker build -t htthecool/server ./server
+  - docker build -t htthecool/worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push htthecool/multi-client
+  - docker push htthecool/multi-nginx
+  - docker push htthecool/server
+  - docker push htthecool/worker
+
